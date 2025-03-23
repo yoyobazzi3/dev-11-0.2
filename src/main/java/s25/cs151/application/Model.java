@@ -7,6 +7,7 @@ public class Model {
     private String semester;
     private String year;
     private Set<String> selectedDays;
+    private int selectedDaysCount;
 
     public Model() {
         selectedDays = new HashSet<>();
@@ -39,4 +40,6 @@ public class Model {
     public void clearSelectedDays() {
         selectedDays.clear();
     }
+
+    public int getSelectedDaysCount() {return selectedDaysCount;}
 }
