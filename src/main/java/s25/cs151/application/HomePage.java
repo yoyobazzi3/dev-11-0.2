@@ -8,7 +8,16 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
 public class HomePage {
+    private static Model model = new Model(); // Shared data model
+
     public static Scene createScene(Stage stage) {
         GridPane pane = new GridPane();
         pane.setAlignment(Pos.TOP_CENTER);
@@ -21,81 +30,136 @@ public class HomePage {
         GridPane.setHalignment(titleLabel, HPos.CENTER);
         pane.add(titleLabel, 0, 0, 2, 1);
 
-        // First Name
-        Label firstNameLabel = new Label("First Name:");
-        firstNameLabel.setStyle("-fx-font-size: 24px;");
-        TextField firstName = new TextField();
-        firstName.setPrefWidth(250);
-        pane.add(firstNameLabel, 0, 1);
-        pane.add(firstName, 0, 2);
-
-        // Last Name
-        Label lastNameLabel = new Label("Last Name:");
-        lastNameLabel.setStyle("-fx-font-size: 24px;");
-        TextField lastName = new TextField();
-        lastName.setPrefWidth(250);
-        pane.add(lastNameLabel, 1, 1);
-        pane.add(lastName, 1, 2);
-
-        // Reason
-        Label reasonLabel = new Label("Reason:");
-        reasonLabel.setStyle("-fx-font-size: 24px;");
-        TextField reason = new TextField();
-        reason.setPrefWidth(250);
-        pane.add(reasonLabel, 0, 3);
-        pane.add(reason, 0, 4);
-
         // Semester Dropdown
         Label semesterLabel = new Label("Semester:");
         semesterLabel.setStyle("-fx-font-size: 24px;");
         ComboBox<String> semesterDropdown = new ComboBox<>();
         semesterDropdown.getItems().addAll("Spring", "Summer", "Fall", "Winter");
+        semesterDropdown.setValue("Spring"); // Default value
         semesterDropdown.setPrefWidth(250);
-        pane.add(semesterLabel, 1, 3);
-        pane.add(semesterDropdown, 1, 4);
+        pane.add(semesterLabel, 0, 1);
+        pane.add(semesterDropdown, 0, 2);
 
-        // Year Dropdown
+        // Year Text Field
         Label yearLabel = new Label("Year:");
         yearLabel.setStyle("-fx-font-size: 24px;");
-        ComboBox<String> yearDropdown = new ComboBox<>();
-        yearDropdown.getItems().addAll("2025", "2026", "2027", "2028");
-        yearDropdown.setPrefWidth(250);
-        pane.add(yearLabel, 0, 5);
-        pane.add(yearDropdown, 0, 6);
+        TextField yearField = new TextField();
+        yearField.setPrefWidth(250);
+        yearField.setPromptText("Enter a 4-digit year (e.g., 2025)");
+        pane.add(yearLabel, 1, 1);
+        pane.add(yearField, 1, 2);
 
-        // Day of the Week Dropdown
-        Label dayLabel = new Label("Day of the Week:");
-        dayLabel.setStyle("-fx-font-size: 24px;");
-        ComboBox<String> dayDropdown = new ComboBox<>();
-        dayDropdown.getItems().addAll("Monday", "Tuesday", "Wednesday", "Thursday", "Friday");
-        dayDropdown.setPrefWidth(250);
-        pane.add(dayLabel, 1, 5);
-        pane.add(dayDropdown, 1, 6);
+        // Days Checkboxes
+        Label daysLabel = new Label("Days:");
+        daysLabel.setStyle("-fx-font-size: 24px;");
+        pane.add(daysLabel, 0, 3);
 
-        // Class Textbox
-        Label classLabel = new Label("Class:");
-        classLabel.setStyle("-fx-font-size: 24px;");
-        TextField classField = new TextField();
-        classField.setPrefWidth(250);
-        pane.add(classLabel, 0, 7);
-        pane.add(classField, 0, 8);
+        CheckBox mondayCheckBox = new CheckBox("Monday");
+        CheckBox tuesdayCheckBox = new CheckBox("Tuesday");
+        CheckBox wednesdayCheckBox = new CheckBox("Wednesday");
+        CheckBox thursdayCheckBox = new CheckBox("Thursday");
+        CheckBox fridayCheckBox = new CheckBox("Friday");
 
-        // Time Slot Dropdown
-        Label timeSlotLabel = new Label("Time Slot:");
-        timeSlotLabel.setStyle("-fx-font-size: 24px;");
-        ComboBox<String> timeSlotDropdown = new ComboBox<>();
-        timeSlotDropdown.getItems().addAll("8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM",
-                "11:00 AM - 12:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM",
-                "3:00 PM - 4:00 PM", "4:00 PM - 5:00 PM");
-        timeSlotDropdown.setPrefWidth(250);
-        pane.add(timeSlotLabel, 1, 7);
-        pane.add(timeSlotDropdown, 1, 8);
+        GridPane checkBoxPane = new GridPane();
+        checkBoxPane.setHgap(10);
+        checkBoxPane.setVgap(10);
+        checkBoxPane.add(mondayCheckBox, 0, 0);
+        checkBoxPane.add(tuesdayCheckBox, 1, 0);
+        checkBoxPane.add(wednesdayCheckBox, 2, 0);
+        checkBoxPane.add(thursdayCheckBox, 3, 0);
+        checkBoxPane.add(fridayCheckBox, 4, 0);
+
+        pane.add(checkBoxPane, 0, 4, 2, 1);
+
+        // Save Button
+        Button saveButton = new Button("Save");
+        saveButton.setOnAction(e -> {
+            // Validate year
+            if (!isValidYear(yearField.getText())) {
+                showAlert("Error", "Please enter a valid 4-digit year.");
+                return;
+            }
+
+            // Check for duplicate entry
+            String semester = semesterDropdown.getValue();
+            String year = yearField.getText();
+            if (isDuplicateEntry(semester, year)) {
+                showAlert("Duplicate Entry", "An entry with the same semester and year already exists.");
+                return;
+            }
+
+            // Save semester
+            model.setSemester(semester);
+
+            // Save year
+            model.setYear(year);
+
+            // Save selected days
+            model.clearSelectedDays();
+            if (mondayCheckBox.isSelected()) model.addSelectedDay("Monday");
+            if (tuesdayCheckBox.isSelected()) model.addSelectedDay("Tuesday");
+            if (wednesdayCheckBox.isSelected()) model.addSelectedDay("Wednesday");
+            if (thursdayCheckBox.isSelected()) model.addSelectedDay("Thursday");
+            if (fridayCheckBox.isSelected()) model.addSelectedDay("Friday");
+
+            // Save to CSV
+            saveToCSV(model);
+
+            // Show confirmation
+            showAlert("Success", "Data saved successfully!");
+        });
+        pane.add(saveButton, 0, 5);
 
         // Back Button
         Button backButton = new Button("Back to Landing Page");
         backButton.setOnAction(e -> stage.setScene(LandingPage.createScene(stage)));
-        pane.add(backButton, 0, 9);
+        pane.add(backButton, 1, 5);
 
-        return new Scene(pane, 1250, 750);
+        return new Scene(pane, 800, 600);
+    }
+
+    private static boolean isValidYear(String year) {
+        return year != null && year.matches("\\d{4}");
+    }
+
+    private static boolean isDuplicateEntry(String semester, String year) {
+        String csvFile = "office_hours_data.csv";
+        try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 2 && parts[0].equals(semester) && parts[1].equals(year)) {
+                    return true; // Duplicate found
+                }
+            }
+        } catch (IOException e) {
+            // Ignore errors (e.g., file doesn't exist yet)
+        }
+        return false; // No duplicate
+    }
+
+    private static void saveToCSV(Model model) {
+        String csvFile = "office_hours_data.csv";
+        try (FileWriter writer = new FileWriter(csvFile, true)) { // Append mode
+            // Write data
+            writer.append(model.getSemester()).append(",");
+            writer.append(model.getYear()).append(",");
+            writer.append(String.join(";", model.getSelectedDays())).append("\n");
+        } catch (IOException e) {
+            showAlert("Error", "Failed to save data to CSV file.");
+            e.printStackTrace();
+        }
+    }
+
+    private static void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    public static Model getModel() {
+        return model;
     }
 }
