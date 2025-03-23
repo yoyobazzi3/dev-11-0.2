@@ -40,6 +40,7 @@ public class Model {
 
     public void clearSelectedDays() {
         selectedDays.clear();
+        selectedDaysCount = 0;
     }
 
     public int getSelectedDaysCount() {return selectedDaysCount;}
