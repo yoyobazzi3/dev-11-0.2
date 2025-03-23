@@ -72,6 +72,12 @@ public class HomePage {
         // Save Button
         Button saveButton = new Button("Save");
         saveButton.setOnAction(e -> {
+            // Validate year
+            if (!isValidYear(yearField.getText())) {
+                showAlert("Error", "Please enter a valid 4-digit year.");
+                return;
+            }
+
             // Save semester
             model.setSemester(semesterDropdown.getValue());
 
@@ -100,6 +106,10 @@ public class HomePage {
         pane.add(backButton, 1, 5);
 
         return new Scene(pane, 800, 600);
+    }
+
+    private static boolean isValidYear(String year) {
+        return year != null && year.matches("\\d{4}");
     }
 
     private static void saveToCSV(Model model) {
