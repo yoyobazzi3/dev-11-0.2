@@ -59,8 +59,10 @@ public class LandingPage {
                     String year = parts[1];
                     String days = parts[2].replace(";", ", ");
 
-                    // Add data to the observable list
-                    data.add(new OfficeHoursEntry(semester, year, days));
+                    // Check for duplicates before adding
+                    if (!isDuplicate(data, semester, year)) {
+                        data.add(new OfficeHoursEntry(semester, year, days));
+                    }
                 }
             }
         } catch (IOException e) {
@@ -104,6 +106,16 @@ public class LandingPage {
         layout.getChildren().addAll(titleLabel, tableView, datePicker, homeButton);
 
         return new Scene(layout, 1250, 750);
+    }
+
+    // Method to check for duplicates
+    private static boolean isDuplicate(ObservableList<OfficeHoursEntry> data, String semester, String year) {
+        for (OfficeHoursEntry entry : data) {
+            if (entry.getSemester().equals(semester) && entry.getYear().equals(year)) {
+                return true; // Duplicate found
+            }
+        }
+        return false; // No duplicate
     }
 
     // Data model class for TableView

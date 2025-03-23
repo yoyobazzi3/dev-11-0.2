@@ -8,8 +8,12 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class HomePage {
     private static Model model = new Model(); // Shared data model
@@ -76,11 +80,19 @@ public class HomePage {
                 return;
             }
 
+            // Check for duplicate entry
+            String semester = semesterDropdown.getValue();
+            String year = yearField.getText();
+            if (isDuplicateEntry(semester, year)) {
+                showAlert("Duplicate Entry", "An entry with the same semester and year already exists.");
+                return;
+            }
+
             // Save semester
-            model.setSemester(semesterDropdown.getValue());
+            model.setSemester(semester);
 
             // Save year
-            model.setYear(yearField.getText());
+            model.setYear(year);
 
             // Save selected days
             model.clearSelectedDays();
@@ -108,6 +120,22 @@ public class HomePage {
 
     private static boolean isValidYear(String year) {
         return year != null && year.matches("\\d{4}");
+    }
+
+    private static boolean isDuplicateEntry(String semester, String year) {
+        String csvFile = "office_hours_data.csv";
+        try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 2 && parts[0].equals(semester) && parts[1].equals(year)) {
+                    return true; // Duplicate found
+                }
+            }
+        } catch (IOException e) {
+            // Ignore errors (e.g., file doesn't exist yet)
+        }
+        return false; // No duplicate
     }
 
     private static void saveToCSV(Model model) {
