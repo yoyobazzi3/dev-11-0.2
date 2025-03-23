@@ -10,8 +10,6 @@ import javafx.stage.Stage;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 public class HomePage {
     private static Model model = new Model(); // Shared data model
@@ -115,11 +113,6 @@ public class HomePage {
     private static void saveToCSV(Model model) {
         String csvFile = "office_hours_data.csv";
         try (FileWriter writer = new FileWriter(csvFile, true)) { // Append mode
-            // Write header if file is empty
-            if (model.getSemester() != null && model.getYear() != null && !model.getSelectedDays().isEmpty()) {
-                writer.append("Semester,Year,Days\n");
-            }
-
             // Write data
             writer.append(model.getSemester()).append(",");
             writer.append(model.getYear()).append(",");
