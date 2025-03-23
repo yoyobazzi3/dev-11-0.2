@@ -9,14 +9,19 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 public class HomePage {
     private static Model model = new Model(); // Shared data model
+    private static final String CSV_FILE = "office_hours_data.csv";
+
+    // Initialize the CSV file with a header if it doesn't exist
+    static {
+        initializeCSVFile();
+    }
 
     public static Scene createScene(Stage stage) {
         GridPane pane = new GridPane();
@@ -118,13 +123,25 @@ public class HomePage {
         return new Scene(pane, 800, 600);
     }
 
+    // Initialize the CSV file with a header if it doesn't exist
+    private static void initializeCSVFile() {
+        File file = new File(CSV_FILE);
+        if (!file.exists()) {
+            try (FileWriter writer = new FileWriter(CSV_FILE)) {
+                writer.append("Semester,Year,Days\n"); // Write header
+            } catch (IOException e) {
+                showAlert("Error", "Failed to initialize CSV file.");
+                e.printStackTrace();
+            }
+        }
+    }
+
     private static boolean isValidYear(String year) {
         return year != null && year.matches("\\d{4}");
     }
 
     private static boolean isDuplicateEntry(String semester, String year) {
-        String csvFile = "office_hours_data.csv";
-        try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(CSV_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -139,8 +156,7 @@ public class HomePage {
     }
 
     private static void saveToCSV(Model model) {
-        String csvFile = "office_hours_data.csv";
-        try (FileWriter writer = new FileWriter(csvFile, true)) { // Append mode
+        try (FileWriter writer = new FileWriter(CSV_FILE, true)) { // Append mode
             // Write data
             writer.append(model.getSemester()).append(",");
             writer.append(model.getYear()).append(",");
