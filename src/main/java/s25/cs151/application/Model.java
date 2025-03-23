@@ -35,6 +35,7 @@ public class Model {
 
     public void addSelectedDay(String day) {
         selectedDays.add(day);
+        selectedDaysCount++;
     }
 
     public void clearSelectedDays() {
