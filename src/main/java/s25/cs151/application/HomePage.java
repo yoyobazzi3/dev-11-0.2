@@ -98,6 +98,9 @@ public class HomePage {
             else if (!isDuplicate(model)) {
                 showAlert("Duplicate Entry", "This entry already exists.");
             }
+            else if(model.getSelectedDaysCount() > 1){
+                showAlert("Only one entry allowed", "Please limit your entry count to one day.");
+            }
             else {
                 saveToCSV(model);
                 showAlert("Success", "Data saved successfully!");
