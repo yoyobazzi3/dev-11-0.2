@@ -72,10 +72,22 @@ public class LandingPage {
             alert.showAndWait();
         }
 
-        // Sort data by year (descending) and then by semester (descending)
+        // Define the custom order for semesters
+        Comparator<String> semesterOrder = Comparator
+                .comparingInt(s -> {
+                    switch (s) {
+                        case "Winter": return 0;
+                        case "Fall": return 1;
+                        case "Summer": return 2;
+                        case "Spring": return 3;
+                        default: return 4; // Handle unexpected values
+                    }
+                });
+
+        // Sort data by year (descending) and then by semester (custom order)
         data.sort(Comparator
                 .comparing(OfficeHoursEntry::getYear, Comparator.reverseOrder())
-                .thenComparing(OfficeHoursEntry::getSemester, Comparator.reverseOrder())
+                .thenComparing(OfficeHoursEntry::getSemester, semesterOrder)
         );
 
         // Set data to TableView
