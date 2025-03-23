@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Comparator;
 
 public class LandingPage {
     public static Scene createScene(Stage stage) {
@@ -70,6 +71,12 @@ public class LandingPage {
             alert.setContentText("Failed to read CSV file.");
             alert.showAndWait();
         }
+
+        // Sort data by year (descending) and then by semester (descending)
+        data.sort(Comparator
+                .comparing(OfficeHoursEntry::getYear, Comparator.reverseOrder())
+                .thenComparing(OfficeHoursEntry::getSemester, Comparator.reverseOrder())
+        );
 
         // Set data to TableView
         tableView.setItems(data);
