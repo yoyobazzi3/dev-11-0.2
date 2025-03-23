@@ -1,9 +1,12 @@
 package s25.cs151.application;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -20,16 +23,25 @@ public class LandingPage {
         Label titleLabel = new Label("Office Hour Manager - Landing Page");
         titleLabel.setStyle("-fx-font-size: 24px;");
 
-        // Container for saved data
-        VBox savedDataContainer = new VBox(10);
-        savedDataContainer.setPadding(new Insets(15));
+        // TableView to display CSV data
+        TableView<OfficeHoursEntry> tableView = new TableView<>();
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // Header for saved data
-        Label savedDataLabel = new Label("Saved Office Hours Data");
-        savedDataLabel.setStyle("-fx-font-size: 18px;");
+        // Columns for TableView
+        TableColumn<OfficeHoursEntry, String> semesterColumn = new TableColumn<>("Semester");
+        semesterColumn.setCellValueFactory(new PropertyValueFactory<>("semester"));
 
-        // Read and display CSV data
-        VBox csvDataBox = new VBox(5);
+        TableColumn<OfficeHoursEntry, String> yearColumn = new TableColumn<>("Year");
+        yearColumn.setCellValueFactory(new PropertyValueFactory<>("year"));
+
+        TableColumn<OfficeHoursEntry, String> daysColumn = new TableColumn<>("Days");
+        daysColumn.setCellValueFactory(new PropertyValueFactory<>("days"));
+
+        // Add columns to TableView
+        tableView.getColumns().addAll(semesterColumn, yearColumn, daysColumn);
+
+        // Load data from CSV into TableView
+        ObservableList<OfficeHoursEntry> data = FXCollections.observableArrayList();
         try (BufferedReader reader = new BufferedReader(new FileReader("office_hours_data.csv"))) {
             String line;
             boolean isHeader = true;
@@ -46,20 +58,21 @@ public class LandingPage {
                     String year = parts[1];
                     String days = parts[2].replace(";", ", ");
 
-                    // Create a label for each entry (concise format)
-                    Label entryLabel = new Label(String.format("%s | %s | %s", semester, year, days));
-                    entryLabel.setStyle("-fx-font-size: 16px;");
-                    csvDataBox.getChildren().add(entryLabel);
+                    // Add data to the observable list
+                    data.add(new OfficeHoursEntry(semester, year, days));
                 }
             }
         } catch (IOException e) {
-            Label errorLabel = new Label("Failed to read CSV file.");
-            errorLabel.setStyle("-fx-font-size: 16px;");
-            csvDataBox.getChildren().add(errorLabel);
+            // Show error message if CSV file cannot be read
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Failed to read CSV file.");
+            alert.showAndWait();
         }
 
-        // Add components to the saved data container
-        savedDataContainer.getChildren().addAll(savedDataLabel, csvDataBox);
+        // Set data to TableView
+        tableView.setItems(data);
 
         // Date Picker
         DatePicker datePicker = new DatePicker(LocalDate.now());
@@ -69,8 +82,33 @@ public class LandingPage {
         homeButton.setOnAction(e -> stage.setScene(HomePage.createScene(stage)));
 
         // Add all components to the main layout
-        layout.getChildren().addAll(titleLabel, savedDataContainer, datePicker, homeButton);
+        layout.getChildren().addAll(titleLabel, tableView, datePicker, homeButton);
 
         return new Scene(layout, 1250, 750);
+    }
+
+    // Data model class for TableView
+    public static class OfficeHoursEntry {
+        private final String semester;
+        private final String year;
+        private final String days;
+
+        public OfficeHoursEntry(String semester, String year, String days) {
+            this.semester = semester;
+            this.year = year;
+            this.days = days;
+        }
+
+        public String getSemester() {
+            return semester;
+        }
+
+        public String getYear() {
+            return year;
+        }
+
+        public String getDays() {
+            return days;
+        }
     }
 }
