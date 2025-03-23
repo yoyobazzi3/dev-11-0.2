@@ -100,6 +100,7 @@ public class HomePage {
             }
             else if(model.getSelectedDaysCount() > 1){
                 showAlert("Only one entry allowed", "Please limit your entry count to one day.");
+                model.clearSelectedDays();
             }
             else {
                 saveToCSV(model);
